@@ -6,15 +6,33 @@
 #define DE 33 // Connect DE terminal with 33 of ESP
 
 // const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x02, 0x71, 0xCB}; // Voltage
-// const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x06, 0x00, 0x02, 0x91, 0xCA}; // Current
+byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x06, 0x00, 0x02, 0x91, 0xCA}; // Current
 // const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x0C, 0x00, 0x02, 0xB1, 0xC8}; // Power
 // const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x46, 0x00, 0x02, 0x90, 0x1E}; // Frequency
-const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x48, 0x00, 0x02, 0xF1, 0xDD}; // kwh
+// const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x48, 0x00, 0x02, 0xF1, 0xDD}; // kwh
 
 byte BufferValue[9];
 int counter = 0;
 
 SoftwareSerial mod(26, 27); // RX=26 , TX =27
+
+unsigned short ModBus_CRC16(unsigned char *buffer, unsigned short len) {
+    unsigned int cur_crc;
+    cur_crc = 0xFFFF;
+    do {
+        unsigned int i = 8;
+        cur_crc = cur_crc ^ *buffer++;
+        do {
+            if (0x0001 & cur_crc) {
+                cur_crc >>= 1;
+                cur_crc ^= 0xA001;
+            } else {
+                cur_crc >>= 1;
+            }
+        } while (--i);
+    } while (--len);
+    return cur_crc;
+}
 
 byte ModbusData()
 {
@@ -45,11 +63,12 @@ byte ModbusData()
       BufferValue[i] = mod.read();
     }
 
+/*
     for (i = 0; i < sizeof(BufferValue); i++)
     {
       Serial.println(BufferValue[i], HEX);
     }
-
+*/
     Serial.println("");
 
     byte incoming[4] = {BufferValue[6], BufferValue[5], BufferValue[4], BufferValue[3]};
@@ -75,6 +94,6 @@ void loop()
   while (mod.write(ModReadBuffer, sizeof(ModReadBuffer)) == 8)
   {
     ModbusData();
-    delay(5000);
+    delay(1000);
   }
 }
