@@ -7,12 +7,14 @@
 
 const byte Voltage[] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x02, 0x71, 0xCB}; // Voltage
 const byte Current[] = {0x01, 0x04, 0x00, 0x06, 0x00, 0x02, 0x91, 0xCA}; // Current
-// const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x0C, 0x00, 0x02, 0xB1, 0xC8}; // Power
-// const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x46, 0x00, 0x02, 0x90, 0x1E}; // Frequency
-// const byte ModReadBuffer[] = {0x01, 0x04, 0x00, 0x48, 0x00, 0x02, 0xF1, 0xDD}; // kwh
+const byte Power[] = {0x01, 0x04, 0x00, 0x0C, 0x00, 0x02, 0xB1, 0xC8}; // Power
+const byte Frequency[] = {0x01, 0x04, 0x00, 0x46, 0x00, 0x02, 0x90, 0x1E}; // Frequency
+const byte kwh[] = {0x01, 0x04, 0x00, 0x48, 0x00, 0x02, 0xF1, 0xDD}; // kwh
 
 byte BufferValue[9];
 int counter = 0;
+
+float values[5];
 
 SoftwareSerial mod(26, 27); // RX=26 , TX =27
 
@@ -47,13 +49,13 @@ float Read(const byte request[], int size)
   // We set driver enable and receiver enable to high in order to send our request
   digitalWrite(DE, HIGH);
   digitalWrite(RE, HIGH);
-  delay(10);
-
+  delay(50);
   if (mod.write(request, size) == 8)
   {
     // We set driver enable and receiver enable to low in order to receive a response from our req
     digitalWrite(DE, LOW);
     digitalWrite(RE, LOW);
+    delay(50);
 
     for (i = 0; i < sizeof(BufferValue); i++)
     {
@@ -69,7 +71,6 @@ void setup()
 {
   Serial.begin(115200);
   mod.begin(9600); // modbus configuration
-
   pinMode(RE, OUTPUT);
   pinMode(DE, OUTPUT);
 }
@@ -77,12 +78,33 @@ void setup()
 void loop()
 {
   Serial.println("");
-  float volt = Read(Voltage, sizeof(Voltage));
-  Serial.print(volt * 0);
-  Serial.println("V");
-  delay(1000);
-  float curr = Read(Current, sizeof(Current));
-  Serial.print(curr);
-  Serial.println("A");
+  int size = 8;
+  values[0] = Read(Voltage, size);
+  delay(100);
+
+  values[1] = Read(Current, size);
+  delay(100);
+
+  values[2] = Read(Power, size);
+  delay(100);
+
+  values[3] = Read(Frequency, size);
+  delay(100);
+
+  values[4] = Read(kwh, size);
+  delay(100);
+  
+  
+  
+  
+  
+  Serial.println("");
+  Serial.println("");
+  for (size_t i = 0; i < 5; i++)
+  {
+    Serial.println(values[i]);
+  }
+  Serial.println("");
+  Serial.println("");
   delay(3000);
 }
