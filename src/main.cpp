@@ -67,10 +67,15 @@ float Read(const byte request[], int size)
   return val;
 }
 
+float Read(unsigned short reg, unsigned short numOfBytes) {
+  
+
+}
+
 void setup()
 {
   Serial.begin(115200);
-  mod.begin(9600); // modbus configuration
+  mod.begin(9600);
   pinMode(RE, OUTPUT);
   pinMode(DE, OUTPUT);
 }
@@ -80,31 +85,22 @@ void loop()
   Serial.println("");
   int size = 8;
   values[0] = Read(Voltage, size);
-  delay(100);
-
   values[1] = Read(Current, size);
-  delay(100);
-
   values[2] = Read(Power, size);
-  delay(100);
-
   values[3] = Read(Frequency, size);
-  delay(100);
-
   values[4] = Read(kwh, size);
-  delay(100);
   
-  
-  
-  
-  
-  Serial.println("");
   Serial.println("");
   for (size_t i = 0; i < 5; i++)
   {
     Serial.println(values[i]);
   }
   Serial.println("");
-  Serial.println("");
+
+  byte a[] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x02};
+  unsigned short res = ModBus_CRC16(a, 6);
+  Serial.println(res, HEX);
+  Serial.println(highByte(res), HEX);
+  Serial.println(lowByte(res), HEX);
   delay(3000);
 }
